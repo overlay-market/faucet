@@ -5,6 +5,8 @@ import { AppModule } from "./app.module"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+  // Enable CORS. Ref: https://docs.nestjs.com/security/cors
+  app.enableCors({ origin: "https://overlay.market" })
   // Enable dto validation. Ref: https://docs.nestjs.com/techniques/validation
   app.useGlobalPipes(new ValidationPipe())
   // Enable custom configuration. Ref: https://docs.nestjs.com/techniques/configuration
