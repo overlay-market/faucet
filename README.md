@@ -14,7 +14,7 @@ Fill in the [configuration file](src/config/configuration.ts) with the required 
 
 You will need to create a `.env` file in the root folder, with the following values:
 
-```toml
+```env
 # The private key of the account that will be used to send the tokens
 PRIVATE_KEY=<pk>
 # The URL of the Ethereum node (eg. Alchemy, Infura, etc.)
