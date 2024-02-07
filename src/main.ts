@@ -6,10 +6,11 @@ import { AppModule } from "./app.module"
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   // Enable CORS. Ref: https://docs.nestjs.com/security/cors
-  app.enableCors({
-    origin: "https://app.overlay.market",
-    credentials: true,
-  })
+  // app.enableCors({
+  //   origin: "https://app.overlay.market",
+  //   credentials: true,
+  // })
+  app.enableCors()
   // Enable dto validation. Ref: https://docs.nestjs.com/techniques/validation
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
