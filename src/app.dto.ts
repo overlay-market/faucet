@@ -25,8 +25,8 @@ export function IsEthAddress(validationOptions?: ValidationOptions) {
 
 export class RequestTokenDto {
     @IsNotEmpty()
-    @IsIn(["eth", "ovl"])
-    token: "eth" | "ovl"
+    @IsIn(["eth", "ovl"], { each: true })
+    tokens: string[]
 
     @IsNotEmpty()
     @IsEthAddress()

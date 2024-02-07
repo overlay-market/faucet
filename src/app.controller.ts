@@ -15,7 +15,7 @@ export class AppController {
   async requestToken(@Body() requestTokenDto: RequestTokenDto) {
     try {
       return await this.appService.requestToken(
-        requestTokenDto.token,
+        requestTokenDto.tokens,
         requestTokenDto.recipient
       )
     } catch (e) {

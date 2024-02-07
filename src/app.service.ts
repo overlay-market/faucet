@@ -2,7 +2,7 @@ import * as fs from "fs"
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { ethers } from "ethers"
-import { BlockchainService } from './blockchain/blockchain.service';
+import { BlockchainService } from './blockchain/blockchain.service'
 
 @Injectable()
 export class AppService {
@@ -23,40 +23,64 @@ export class AppService {
     return "Service is up!"
   }
 
-  async requestToken(token: string, recipient: string) {
-    // TODO: replace token param with a string[] to allow multiple tokens to be claimed at once
-    if (this.alreadyClaimed[recipient] && this.alreadyClaimed[recipient].includes(token)) {
-      throw new Error(`recipient has already claimed token (${token})`)
-    }
+  async requestToken(tokens: string[], recipient: string) {
+    if (!this.alreadyClaimed[recipient]) this.alreadyClaimed[recipient] = []
 
     const supportedTokens = this.configService.get("supportedTokens")
 
-    if (!supportedTokens[token]) throw new Error(`unsupported token (${token})`)
-
-    const signer = this.blockchainService.getSigner()
-    const amount = supportedTokens[token].amount
-
-    let tx: ethers.TransactionResponse
-
-    if (token === "eth") {
-      tx = await signer.sendTransaction({
-        to: recipient,
-        value: amount,
-      })
-    } else {
-      const erc20 = new ethers.Contract(
-        supportedTokens[token].address,
-        ["function transfer(address to, uint256 amount)"],
-        signer
-      )
-      tx = await erc20.transfer(recipient, amount)
+    // check if the recipient has already claimed any of the tokens, and if they are valid
+    for (const token of tokens) {
+      if (!supportedTokens[token]) throw new Error(`unsupported token (${token})`)
+      if (this.alreadyClaimed[recipient].includes(token))
+        throw new Error(`recipient has already claimed token (${token})`)
     }
 
-    // save the recipient and claimed tokens in the "db", and persist it to disk
-    if (!this.alreadyClaimed[recipient]) this.alreadyClaimed[recipient] = []
-    this.alreadyClaimed[recipient].push(token)
+    const signer = this.blockchainService.getSigner()
+    const pendingTxs: Promise<ethers.TransactionResponse>[] = []
+
+    // create a transaction for each token
+    for (const token of tokens) {
+      const amount = supportedTokens[token].amount
+      let tx: Promise<ethers.TransactionResponse>
+  
+      if (token === "eth") {
+        tx = signer.sendTransaction({
+          to: recipient,
+          value: amount,
+        })
+      } else {
+        const erc20 = new ethers.Contract(
+          supportedTokens[token].address,
+          ["function transfer(address to, uint256 amount)"],
+          signer
+        )
+        tx = erc20.transfer(recipient, amount)
+      }
+
+      pendingTxs.push(tx)
+    }
+
+    const txs = await Promise.allSettled(pendingTxs)
+
+    const response: Record<string, { status: string, txHash?: string, reason?: string }> = {}
+
+    // check the status of each transaction and build the response
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i]
+      const tx = txs[i]
+      if (tx.status === "fulfilled") {
+        response[token] = { status: "success", txHash: tx.value.hash }
+        this.alreadyClaimed[recipient].push(token)
+      }
+      else {
+        response[token] = { status: "error", reason: `could not transfer token (${token}) to recipient` }
+        console.log(`Error transferring token (${token}) to recipient (${recipient}): ${tx.reason.message}`)
+      }
+    }
+
+    // persist the claimed tokens to disk
     fs.writeFileSync(this.dbPath, JSON.stringify(this.alreadyClaimed, null, 2))
 
-    return { txHash: tx.hash }
+    return response
   }
 }
