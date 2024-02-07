@@ -25,6 +25,8 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+# or with pm2
+$ npm run start:pm2
 ```
 
 ## Test
