@@ -23,6 +23,14 @@ RPC_PROVIDER_URL=https://arb-sepolia.g.alchemy.com/v2/<key>
 
 ## Running the app
 
+First, build the app:
+
+```bash
+$ npm run build
+```
+
+Then, you can run the app in one of the following modes:
+
 ```bash
 # development
 $ npm run start
@@ -53,6 +61,8 @@ $ npm run test:cov
 
 ### Request tokens
 
+> POST /
+
 Sample request body:
 
 ```json
@@ -77,7 +87,7 @@ Sample [partial] success response:
 }
 ```
 
-Sample response when there's the request body is invalid:
+Sample response when the request body is invalid:
 
 ```json
 {
