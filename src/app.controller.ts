@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Post } from "@nestjs/common"
 import { AppService } from "./app.service"
 import { RequestTokenDto } from "./app.dto"
 
@@ -13,9 +13,13 @@ export class AppController {
 
   @Post()
   async requestToken(@Body() requestTokenDto: RequestTokenDto) {
-    return this.appService.requestToken(
-      requestTokenDto.token,
-      requestTokenDto.recipient
-    )
+    try {
+      return await this.appService.requestToken(
+        requestTokenDto.token,
+        requestTokenDto.recipient
+      )
+    } catch (e) {
+      throw new BadRequestException(e.message)
+    }
   }
 }
