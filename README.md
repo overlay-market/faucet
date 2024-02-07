@@ -59,6 +59,22 @@ $ npm run test:cov
 
 ## Endpoints
 
+### Get already claimed tokens
+
+> GET /claims?recipient=\<address\>
+
+Sample response:
+
+```json
+["eth", "ovl"]
+```
+
+An empty array is returned if the recipient has not claimed any tokens:
+
+```json
+[]
+```
+
 ### Request tokens
 
 > POST /
