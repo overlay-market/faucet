@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post } from "@nestjs/common"
+import { BadRequestException, Body, Controller, Get, Post, Query } from "@nestjs/common"
 import { AppService } from "./app.service"
 import { RequestTokenDto } from "./app.dto"
 
@@ -21,5 +21,10 @@ export class AppController {
     } catch (e) {
       throw new BadRequestException(e.message)
     }
+  }
+
+  @Get("claims")
+  getClaimed(@Query("recipient") recipient: string) {
+    return this.appService.getClaimed(recipient)
   }
 }

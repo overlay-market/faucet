@@ -23,6 +23,10 @@ export class AppService {
     return "Service is up!"
   }
 
+  getClaimed(recipient: string) {
+    return this.alreadyClaimed[recipient] || []
+  }
+
   async requestToken(tokens: string[], recipient: string) {
     if (!this.alreadyClaimed[recipient]) this.alreadyClaimed[recipient] = []
 
