@@ -7,11 +7,11 @@ export default () => ({
     providerUrl: process.env.RPC_PROVIDER_URL,
     supportedTokens: {
         eth: {
-            amount: ethers.parseEther("0.01"), // 0.01 ETH
+            amount: ethers.parseEther("0.0069"), // 0.0069 ETH
         },
         ovl: {
             address: "0x3E27fAe625f25291bFda517f74bf41DC40721dA2",
-            amount: ethers.parseEther("10"), // 10 OVL
+            amount: ethers.parseEther("100"), // 100 OVL
         },
     }
 })
