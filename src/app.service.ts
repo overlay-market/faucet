@@ -46,6 +46,9 @@ export class AppService {
     for (const token of tokens) {
       const amount = supportedTokens[token].amount
       let tx: Promise<ethers.TransactionResponse>
+
+      // do this in advance to prevent double claiming while the tx is pending
+      this.alreadyClaimed[recipient].push(token)
   
       if (token === "eth") {
         tx = signer.sendTransaction({
@@ -74,11 +77,21 @@ export class AppService {
       const tx = txs[i]
       if (tx.status === "fulfilled") {
         response[token] = { status: "success", txHash: tx.value.hash }
-        this.alreadyClaimed[recipient].push(token)
       }
       else {
         response[token] = { status: "error", reason: `could not transfer token (${token}) to recipient` }
-        console.log(`Error transferring token (${token}) to recipient (${recipient}): ${tx.reason.message}`)
+        // remove the token from the already claimed list, to enable the user to try again
+        this.alreadyClaimed[recipient] = this.alreadyClaimed[recipient].filter(t => t !== token);
+
+        const errMessage: string = tx.reason.message ?? "unknown error"
+        console.log(`Error transferring token (${token}) to recipient (${recipient}): ${errMessage}`)
+        // if there's a nonce error, reset the nonce, so the NonceManager that wraps
+        // the Signer reloads the current nonce from the blockchain on the next transaction
+        if (errMessage.includes("nonce has already been used")) {
+          signer.reset()
+          // encourage the user to try again
+          response[token].reason = "too many requests, please try again in a few seconds"
+        }
       }
     }
 
