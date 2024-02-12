@@ -18,8 +18,9 @@ You will need to create a `.env` file in the root folder, with the following val
 # The private key of the account that will be used to send the tokens
 PRIVATE_KEY=<pk>
 # The URL of the Ethereum node (eg. Alchemy, Infura, etc.)
-RPC_PROVIDER_URL=https://arb-sepolia.g.alchemy.com/v2/<key>
-```
+SEPOLIA_PROVIDER_URL=https://arb-sepolia.g.alchemy.com/v2/<key>
+MAINNET_PROVIDER_URL=https://arb-mainnet.g.alchemy.com/v2/<key>
+``` 
 
 ## Running the app
 

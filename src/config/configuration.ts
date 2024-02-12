@@ -4,7 +4,8 @@ import { ethers } from "ethers"
 export default () => ({
     port: parseInt(process.env.PORT) || 3000,
     fundsWallet: process.env.PRIVATE_KEY,
-    providerUrl: process.env.RPC_PROVIDER_URL,
+    testnetProviderUrl: process.env.SEPOLIA_PROVIDER_URL,
+    mainnetProviderUrl: process.env.MAINNET_PROVIDER_URL,
     supportedTokens: {
         eth: {
             amount: ethers.parseEther("0.003"), // 0.003 ETH

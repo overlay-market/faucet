@@ -30,6 +30,11 @@ export class AppService {
   async requestToken(tokens: string[], recipient: string) {
     if (!this.alreadyClaimed[recipient]) this.alreadyClaimed[recipient] = []
 
+    const mainnetBalance = await this.blockchainService.getMainnetBalance(recipient)
+    
+    if (mainnetBalance === BigInt(0))
+      throw new Error("recipient must have a non-zero arbitrum mainnet balance to claim tokens")
+
     const supportedTokens = this.configService.get("supportedTokens")
 
     // check if the recipient has already claimed any of the tokens, and if they are valid
