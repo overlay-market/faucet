@@ -92,7 +92,7 @@ export class AppService {
         console.log(`Error transferring token (${token}) to recipient (${recipient}): ${errMessage}`)
         // if there's a nonce error, reset the nonce, so the NonceManager that wraps
         // the Signer reloads the current nonce from the blockchain on the next transaction
-        if (errMessage.includes("nonce has already been used")) {
+        if (errMessage.includes("nonce has already been used") || errMessage.includes("nonce too high")) {
           signer.reset()
           // encourage the user to try again
           response[token].reason = "too many requests, please try again in a few seconds"
