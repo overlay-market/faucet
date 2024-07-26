@@ -25,7 +25,7 @@ export default () => ({
                 amount: ethers.parseEther("50"), // 50 OVL
             },
             "imola": {
-                address: "0xAddressForImola", // Replace with actual address
+                address: "0xCde46284D32148c4D470fA33BA788710b3d21E89", // Replace with actual address
                 amount: ethers.parseEther("50"), // 50 OVL
             },
         }
