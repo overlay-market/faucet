@@ -4,7 +4,7 @@ import { RequestTokenDto } from "./app.dto"
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) { }
 
   @Get()
   getHello(): string {
@@ -16,7 +16,8 @@ export class AppController {
     try {
       return await this.appService.requestToken(
         requestTokenDto.tokens,
-        requestTokenDto.recipient
+        requestTokenDto.chains,
+        requestTokenDto.recipient,
       )
     } catch (e) {
       throw new BadRequestException(e.message)
@@ -24,7 +25,10 @@ export class AppController {
   }
 
   @Get("claims")
-  getClaimed(@Query("recipient") recipient: string) {
-    return this.appService.getClaimed(recipient)
+  getClaimed(
+    @Query("chain") chain: string,
+    @Query("recipient") recipient: string,
+  ) {
+    return this.appService.getClaimed(chain, recipient)
   }
 }

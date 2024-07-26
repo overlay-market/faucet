@@ -39,3 +39,5 @@ lerna-debug.log*
 
 # Custom
 alreadyClaimed.json
+bartio_alreadyClaimed.json
+imola_alreadyClaimed.json

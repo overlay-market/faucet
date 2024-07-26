@@ -21,8 +21,4 @@ export class BlockchainService {
   getSigner() {
     return this.signer
   }
-
-  getMainnetBalance(account: string) {
-    return this.mainnetProvider.getBalance(account)
-  }
 }

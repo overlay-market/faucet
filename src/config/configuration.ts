@@ -6,13 +6,35 @@ export default () => ({
     fundsWallet: process.env.PRIVATE_KEY,
     testnetProviderUrl: process.env.SEPOLIA_PROVIDER_URL,
     mainnetProviderUrl: process.env.MAINNET_PROVIDER_URL,
+    ethMainnetProviderUrl: process.env.ETH_MAINNET_PROVIDER_URL,
+    bartioProviderUrl: process.env.BARTIO_PROVIDER_URL,
+    imolaProviderUrl: process.env.IMOLA_PROVIDER_URL,
     supportedTokens: {
         eth: {
-            amount: ethers.parseEther("0.003"), // 0.003 ETH
+            "arb-sepolia": {
+                amount: ethers.parseEther("0.0003"),
+            }
         },
         ovl: {
-            address: "0x3E27fAe625f25291bFda517f74bf41DC40721dA2",
-            amount: ethers.parseEther("50"), // 50 OVL
-        },
+            "arb-sepolia": {
+                address: "0xa6d5fef06111ad768617d26024874c99dc42d96f",
+                amount: ethers.parseEther("50"), // 50 OVL
+            },
+            "bartio": {
+                address: "0xdCeB93598060B0677ef376Ab9Ed1f1e9bAcCA880",
+                amount: ethers.parseEther("50"), // 50 OVL
+            },
+            "imola": {
+                address: "0xAddressForImola", // Replace with actual address
+                amount: ethers.parseEther("50"), // 50 OVL
+            },
+        }
+    },
+    rpcUrls: {
+        "eth-mainnet": process.env.ETH_MAINNET_PROVIDER_URL,
+        "arb-mainnet": process.env.ARB_MAINNET_PROVIDER_URL,
+        "arb-sepolia": process.env.SEPOLIA_PROVIDER_URL,
+        "bartio": process.env.BARTIO_PROVIDER_URL,
+        "imola": process.env.IMOLA_PROVIDER_URL,
     }
 })
