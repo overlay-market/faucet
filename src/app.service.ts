@@ -113,9 +113,9 @@ export class AppService {
         const chain = chains[j]
         const tx = txs[i * chains.length + j]
         if (tx.status === "fulfilled") {
-          response[`${chain}-${token}`] = { status: "success", txHash: tx.value.hash }
+          response[`${token}`] = { status: "success", txHash: tx.value.hash }
         } else {
-          response[`${chain}-${token}`] = { status: "error", reason: `could not transfer token (${token}) to recipient on chain (${chain})` }
+          response[`${token}`] = { status: "error", reason: `could not transfer token (${token}) to recipient on chain (${chain})` }
           this.alreadyClaimed[chain][recipient] = this.alreadyClaimed[chain][recipient].filter(t => t !== token)
 
           const errMessage: string = tx.reason.message ?? "unknown error"
