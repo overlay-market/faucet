@@ -13,10 +13,10 @@ export default () => ({
     supportedTokens: {
         eth: {
             "arb-sepolia": {
-                amount: ethers.parseEther("0.0003"),
+                amount: ethers.parseEther("0.003"),
             },
             "imola": {
-                amount: ethers.parseEther("0.0003"),
+                amount: ethers.parseEther("0.003"),
             }
         },
         ovl: {
@@ -29,7 +29,7 @@ export default () => ({
                 amount: ethers.parseEther("50"), // 50 OVL
             },
             "imola": {
-                address: "0x055616C6E3965F90A82120d675C17409B64DB20E", // Replace with actual address
+                address: "0xCde46284D32148c4D470fA33BA788710b3d21E89", // Replace with actual address
                 amount: ethers.parseEther("50"), // 50 OVL
             },
         }
