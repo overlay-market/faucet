@@ -71,6 +71,11 @@ export class AppService {
       const signer = new ethers.Wallet(this.configService.get("fundsWallet"), provider)
       let nonce = await provider.getTransactionCount(signer.address, 'latest')
 
+      const block = await provider.getBlock("latest");
+      const baseFeePerGas = block.baseFeePerGas || ethers.parseUnits('1', 'gwei');
+      const maxPriorityFeePerGas = baseFeePerGas + ethers.parseUnits('2', 'gwei');
+      const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
+
       for (const token of tokens) {
         if (!supportedTokens[token]) throw new Error(`unsupported token (${token})`)
         if (!supportedTokens[token][chain]) throw new Error(`token (${token}) is not supported on chain (${chain})`)
@@ -86,7 +91,9 @@ export class AppService {
           tx = signer.sendTransaction({
             to: recipient,
             value: amount,
-            nonce
+            nonce,
+            maxPriorityFeePerGas,
+            maxFeePerGas
           })
         } else {
           const tokenConfig = supportedTokens[token][chain]
@@ -95,7 +102,10 @@ export class AppService {
             ["function transfer(address to, uint256 amount)"],
             signer
           )
-          tx = erc20.transfer(recipient, tokenConfig.amount, { nonce })
+          tx = erc20.transfer(recipient, tokenConfig.amount, {
+            nonce, maxPriorityFeePerGas,
+            maxFeePerGas
+          })
         }
 
         pendingTxs.push(tx)
