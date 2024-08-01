@@ -55,11 +55,11 @@ export class AppService {
   async requestToken(tokens: string[], chains: string[], recipient: string) {
     const supportedTokens = this.configService.get("supportedTokens")
     const rpcUrls = this.configService.get("rpcUrls")
-    const arbMainnetBalance = await this.getBalance("arb-mainnet", recipient)
-    const ethMainnetBalance = await this.getBalance("eth-mainnet", recipient)
+    // const arbMainnetBalance = await this.getBalance("arb-mainnet", recipient)
+    // const ethMainnetBalance = await this.getBalance("eth-mainnet", recipient)
 
-    if (arbMainnetBalance === BigInt(0) && ethMainnetBalance === BigInt(0))
-      throw new Error("recipient must have a non-zero balance on either Arbitrum Mainnet or Ethereum Mainnet to claim tokens")
+    // if (arbMainnetBalance === BigInt(0) && ethMainnetBalance === BigInt(0))
+    //   throw new Error("recipient must have a non-zero balance on either Arbitrum Mainnet or Ethereum Mainnet to claim tokens")
 
     const pendingTxs: Promise<ethers.TransactionResponse>[] = []
 
