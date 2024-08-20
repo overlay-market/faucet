@@ -17,6 +17,9 @@ export default () => ({
             },
             "imola": {
                 amount: ethers.parseEther("0.003"),
+            },
+            "bartio": {
+                amount: ethers.parseEther("0.1"),
             }
         },
         ovl: {
