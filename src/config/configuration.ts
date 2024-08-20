@@ -28,7 +28,7 @@ export default () => ({
                 amount: ethers.parseEther("50"), // 50 OVL
             },
             "bartio": {
-                address: "0xdCeB93598060B0677ef376Ab9Ed1f1e9bAcCA880",
+                address: "0x97576e088f0d05EF68cac2EEc63d017FE90952a0",
                 amount: ethers.parseEther("50"), // 50 OVL
             },
             "imola": {
