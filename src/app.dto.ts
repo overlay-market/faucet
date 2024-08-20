@@ -15,8 +15,8 @@ export function IsEthAddress(validationOptions?: ValidationOptions) {
           return ethers.isAddress(value)
         },
         defaultMessage() {
-            // $value will be replaced with the value the user sent
-            return "invalid recipient address ($value)"
+          // $value will be replaced with the value the user sent
+          return "invalid recipient address ($value)"
         }
       },
     })
@@ -24,11 +24,15 @@ export function IsEthAddress(validationOptions?: ValidationOptions) {
 }
 
 export class RequestTokenDto {
-    @IsNotEmpty()
-    @IsIn(["eth", "ovl"], { each: true })
-    tokens: string[]
+  @IsNotEmpty()
+  @IsIn(["eth", "ovl"], { each: true })
+  tokens: string[]
 
-    @IsNotEmpty()
-    @IsEthAddress()
-    recipient: string
+  @IsNotEmpty()
+  @IsIn(["arb-sepolia", "bartio", "imola"], { each: true }) // Supported chains
+  chains: string[]
+
+  @IsNotEmpty()
+  @IsEthAddress()
+  recipient: string
 }
