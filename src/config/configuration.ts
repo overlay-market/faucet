@@ -24,7 +24,7 @@ export default () => ({
         },
         ovl: {
             "arb-sepolia": {
-                address: "0xa6d5fef06111ad768617d26024874c99dc42d96f",
+                address: "0x3E27fAe625f25291bFda517f74bf41DC40721dA2",
                 amount: ethers.parseEther("50"), // 50 OVL
             },
             "bartio": {
