@@ -32,7 +32,7 @@ export default () => ({
                 amount: ethers.parseEther("50"), // 50 OVL
             },
             "imola": {
-                address: "0xCde46284D32148c4D470fA33BA788710b3d21E89", // Replace with actual address
+                address: "0x0CebFBa48065B42d47c7C1Ef0db6E1c83091A833", // Replace with actual address
                 amount: ethers.parseEther("50"), // 50 OVL
             },
         }
