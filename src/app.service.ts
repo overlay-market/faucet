@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import * as fs from "fs"
 import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
@@ -58,7 +59,7 @@ export class AppService {
     const arbMainnetBalance = await this.getBalance("arb-mainnet", recipient)
     const ethMainnetBalance = await this.getBalance("eth-mainnet", recipient)
 
-    if (arbMainnetBalance === BigInt(0) && ethMainnetBalance === BigInt(0))
+    if (arbMainnetBalance === BigInt(0) && ethMainnetBalance === BigInt(0) && !(chains[0] === "imola" && chains.length === 1))
       throw new Error("recipient must have a non-zero balance on either Arbitrum Mainnet or Ethereum Mainnet to claim tokens")
 
     const pendingTxs: Promise<ethers.TransactionResponse>[] = []
