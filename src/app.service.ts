@@ -14,6 +14,7 @@ export class AppService {
       "arb-sepolia": this.loadAlreadyClaimed("arb-sepolia"),
       "bartio": this.loadAlreadyClaimed("bartio"),
       "imola": this.loadAlreadyClaimed("imola"),
+      "bnb-testnet": this.loadAlreadyClaimed("bnb-testnet"),
     }
   }
 
@@ -56,11 +57,22 @@ export class AppService {
   async requestToken(tokens: string[], chains: string[], recipient: string) {
     const supportedTokens = this.configService.get("supportedTokens")
     const rpcUrls = this.configService.get("rpcUrls")
-    const arbMainnetBalance = await this.getBalance("arb-mainnet", recipient)
-    const ethMainnetBalance = await this.getBalance("eth-mainnet", recipient)
-
-    if (arbMainnetBalance === BigInt(0) && ethMainnetBalance === BigInt(0) && !(chains[0] === "imola" && chains.length === 1))
-      throw new Error("recipient must have a non-zero balance on either Arbitrum Mainnet or Ethereum Mainnet to claim tokens")
+    const bnbMainnetBalance = await this.getBalance("bnb-mainnet", recipient)
+    
+    // Get balance at specific timestamp (1747144800 - 13th May 2025, 16:00 UTC)
+    const provider = new ethers.JsonRpcProvider(rpcUrls["bnb-mainnet"])
+    
+    // Find block closest to timestamp 1747144800
+    const timestampBlock = await provider.getBlock(1747144800)
+    const historicalBlockNumber = timestampBlock ? timestampBlock.number : await provider.getBlockNumber()
+    
+    // Get balance at that specific timestamp
+    const historicalBalance = await provider.getBalance(recipient, historicalBlockNumber)
+    
+    const minRequiredBalance = ethers.parseEther("0.002")
+    
+    if (bnbMainnetBalance < minRequiredBalance || historicalBalance < minRequiredBalance)
+      throw new Error("recipient must have at least 0.002 BNB on BNB Mainnet, both now and before")
 
     const pendingTxs: Promise<ethers.TransactionResponse>[] = []
 

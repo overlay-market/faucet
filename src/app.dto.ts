@@ -17,7 +17,7 @@ export function IsEthAddress(validationOptions?: ValidationOptions) {
         defaultMessage() {
           // $value will be replaced with the value the user sent
           return "invalid recipient address ($value)"
-        }
+        },
       },
     })
   }
@@ -29,7 +29,8 @@ export class RequestTokenDto {
   tokens: string[]
 
   @IsNotEmpty()
-  @IsIn(["arb-sepolia", "bartio", "imola"], { each: true }) // Supported chains
+  // @IsIn(["arb-sepolia", "bartio", "imola", "bnb-testnet"], { each: true }) // Supported chains
+  @IsIn(["bnb-testnet"], { each: true }) // Disabled other chains for a time being
   chains: string[]
 
   @IsNotEmpty()

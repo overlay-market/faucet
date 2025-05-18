@@ -10,6 +10,8 @@ export default () => ({
     ethMainnetProviderUrl: process.env.ETH_MAINNET_PROVIDER_URL,
     bartioProviderUrl: process.env.BARTIO_PROVIDER_URL,
     imolaProviderUrl: process.env.IMOLA_PROVIDER_URL,
+    bnbMainnetProviderUrl: process.env.BNB_MAINNET_PROVIDER_URL,
+    bnbTestnetProviderUrl: process.env.BNB_TESTNET_PROVIDER_URL,
     supportedTokens: {
         eth: {
             "arb-sepolia": {
@@ -20,6 +22,9 @@ export default () => ({
             },
             "bartio": {
                 amount: ethers.parseEther("0.1"),
+            },
+            "bnb-testnet": {
+                amount: ethers.parseEther("0.003"),
             }
         },
         ovl: {
@@ -35,6 +40,10 @@ export default () => ({
                 address: "0x0CebFBa48065B42d47c7C1Ef0db6E1c83091A833", // Replace with actual address
                 amount: ethers.parseEther("50"), // 50 OVL
             },
+            "bnb-testnet": {
+                address: "0xb880e767739a82eb716780bdfdbc1ed7b23bdb38", // Replace with actual OVL address on BNB testnet
+                amount: ethers.parseEther("50"), // 50 OVL
+            }
         }
     },
     rpcUrls: {
@@ -43,5 +52,7 @@ export default () => ({
         "arb-sepolia": process.env.SEPOLIA_PROVIDER_URL,
         "bartio": process.env.BARTIO_PROVIDER_URL,
         "imola": process.env.IMOLA_PROVIDER_URL,
+        "bnb-mainnet": process.env.BNB_MAINNET_PROVIDER_URL,
+        "bnb-testnet": process.env.BNB_TESTNET_PROVIDER_URL,
     }
 })
