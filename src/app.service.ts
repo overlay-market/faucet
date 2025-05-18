@@ -59,13 +59,10 @@ export class AppService {
     const rpcUrls = this.configService.get("rpcUrls")
     const bnbMainnetBalance = await this.getBalance("bnb-mainnet", recipient)
     
-    // Get balance at specific timestamp (1747144800 - 13th May 2025, 16:00 UTC)
     const provider = new ethers.JsonRpcProvider(rpcUrls["bnb-mainnet"])
     
-    // Find block closest to timestamp 1747144800
-    const timestampBlock = await provider.getBlock(1747144800)
-    const historicalBlockNumber = timestampBlock ? timestampBlock.number : await provider.getBlockNumber()
-    
+    // May-13-2025 04:03:42 PM +UTC
+    const historicalBlockNumber = 49606000
     // Get balance at that specific timestamp
     const historicalBalance = await provider.getBalance(recipient, historicalBlockNumber)
     
