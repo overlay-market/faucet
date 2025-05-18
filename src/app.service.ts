@@ -61,8 +61,8 @@ export class AppService {
     
     const provider = new ethers.JsonRpcProvider(rpcUrls["bnb-mainnet"])
     
-    // May-13-2025 04:03:42 PM +UTC
-    const historicalBlockNumber = 49606000
+    // Roughly 3 days ago, block time 1.5s
+    const historicalBlockNumber = (await provider.getBlockNumber()) - Math.floor(86400 * 3 / 1.5)
     // Get balance at that specific timestamp
     const historicalBalance = await provider.getBalance(recipient, historicalBlockNumber)
     
