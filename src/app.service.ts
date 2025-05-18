@@ -14,6 +14,7 @@ export class AppService {
       "arb-sepolia": this.loadAlreadyClaimed("arb-sepolia"),
       "bartio": this.loadAlreadyClaimed("bartio"),
       "imola": this.loadAlreadyClaimed("imola"),
+      "bnb-testnet": this.loadAlreadyClaimed("bnb-testnet"),
     }
   }
 
@@ -56,11 +57,19 @@ export class AppService {
   async requestToken(tokens: string[], chains: string[], recipient: string) {
     const supportedTokens = this.configService.get("supportedTokens")
     const rpcUrls = this.configService.get("rpcUrls")
-    const arbMainnetBalance = await this.getBalance("arb-mainnet", recipient)
-    const ethMainnetBalance = await this.getBalance("eth-mainnet", recipient)
+    const bnbMainnetBalance = await this.getBalance("bnb-mainnet", recipient)
+    
+    const provider = new ethers.JsonRpcProvider(rpcUrls["bnb-mainnet"])
+    
+    // Roughly 3 days ago, block time 1.5s
+    const historicalBlockNumber = (await provider.getBlockNumber()) - Math.floor(86400 * 3 / 1.5)
+    // Get balance at that specific timestamp
+    const historicalBalance = await provider.getBalance(recipient, historicalBlockNumber)
+    
+    const minRequiredBalance = ethers.parseEther("0.002")
 
-    if (arbMainnetBalance === BigInt(0) && ethMainnetBalance === BigInt(0) && !(chains[0] === "imola" && chains.length === 1))
-      throw new Error("recipient must have a non-zero balance on either Arbitrum Mainnet or Ethereum Mainnet to claim tokens")
+    if (bnbMainnetBalance < minRequiredBalance || historicalBalance < minRequiredBalance)
+      throw new Error("recipient must have at least 0.002 BNB on BNB Mainnet, both now and before")
 
     const pendingTxs: Promise<ethers.TransactionResponse>[] = []
 
@@ -69,8 +78,8 @@ export class AppService {
       if (!this.alreadyClaimed[chain][recipient]) this.alreadyClaimed[chain][recipient] = []
 
       // Check if the recipient has already claimed both tokens on this chain
-      if (this.alreadyClaimed[chain][recipient].includes("eth") && this.alreadyClaimed[chain][recipient].includes("ovl")) {
-        throw new Error(`Recipient has already claimed both tokens on chain (${chain})`)
+      if (this.alreadyClaimed[chain][recipient].includes("ovl")) {
+        throw new Error(`Recipient has already claimed ovl on chain (${chain})`)
       }
 
       const provider = new ethers.JsonRpcProvider(rpcUrls[chain])
@@ -82,59 +91,38 @@ export class AppService {
       const maxPriorityFeePerGas = baseFeePerGas + ethers.parseUnits('2', 'gwei');
       const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
 
-      if (chain === "imola") {
-        // Use the contract to distribute both OVL and ETH
-        const contractAddress = supportedTokens["ovl"]["imola"].address; // Using supportedTokens.ovl.imola
-        const distributorContract = new ethers.Contract(
-          contractAddress,
-          ["function distributeTokensAndEth(address recipient, uint256 tokenAmount, uint256 ethAmount)"],
-          signer
-        );
+      // Send OVL and ETH separately for other chains
+      // const ethAmount = supportedTokens["eth"][chain].amount;
+      const ovlAmount = supportedTokens["ovl"][chain].amount;
 
-        const ovlAmount = supportedTokens["ovl"][chain].amount;
-        const ethAmount = supportedTokens["eth"][chain].amount;
+      // Send ETH
+      // const ethTx = signer.sendTransaction({
+      //   to: recipient,
+      //   value: ethAmount,
+      //   nonce,
+      //   maxPriorityFeePerGas,
+      //   maxFeePerGas
+      // });
+      // pendingTxs.push(ethTx);
+      // nonce++;
 
-        const tx = distributorContract.distributeTokensAndEth(recipient, ovlAmount, ethAmount, {
-          nonce,
-          maxPriorityFeePerGas,
-          maxFeePerGas
-        });
-
-        pendingTxs.push(tx);
-      } else {
-        // Send OVL and ETH separately for other chains
-        const ethAmount = supportedTokens["eth"][chain].amount;
-        const ovlAmount = supportedTokens["ovl"][chain].amount;
-
-        // Send ETH
-        const ethTx = signer.sendTransaction({
-          to: recipient,
-          value: ethAmount,
-          nonce,
-          maxPriorityFeePerGas,
-          maxFeePerGas
-        });
-        pendingTxs.push(ethTx);
-        nonce++;
-
-        // Send OVL (ERC20)
-        const ovlConfig = supportedTokens["ovl"][chain];
-        const erc20 = new ethers.Contract(
-          ovlConfig.address,
-          ["function transfer(address to, uint256 amount)"],
-          signer
-        );
-        const ovlTx = erc20.transfer(recipient, ovlAmount, {
-          nonce,
-          maxPriorityFeePerGas,
-          maxFeePerGas
-        });
-        pendingTxs.push(ovlTx);
-        nonce++;
-      }
+      // Send OVL (ERC20)
+      const ovlConfig = supportedTokens["ovl"][chain];
+      const erc20 = new ethers.Contract(
+        ovlConfig.address,
+        ["function transfer(address to, uint256 amount)"],
+        signer
+      );
+      const ovlTx = erc20.transfer(recipient, ovlAmount, {
+        nonce,
+        maxPriorityFeePerGas,
+        maxFeePerGas
+      });
+      pendingTxs.push(ovlTx);
+      nonce++;
 
       // Mark both tokens as claimed for the recipient on this chain
-      this.alreadyClaimed[chain][recipient].push("eth");
+      // this.alreadyClaimed[chain][recipient].push("eth");
       this.alreadyClaimed[chain][recipient].push("ovl");
     }
 
@@ -143,11 +131,9 @@ export class AppService {
     const response: Record<string, { status: string, txHash?: string, reason?: string }> = {}
 
     for (const chain of chains) {
-      const transactionsPerChain = chain === "imola" ? 1 : 2; // 1 transaction for imola (contract call), 2 for others
-
-      for (let j = 0; j < transactionsPerChain; j++) {
-        const token = j === 0 ? "eth" : "ovl";
-        const txIndex = chains.indexOf(chain) * 2 + j; // Correct indexing logic
+      for (let j = 0; j < 1; j++) {
+        const token = "ovl";
+        const txIndex = 0;
 
         const tx = txs[txIndex];
 
