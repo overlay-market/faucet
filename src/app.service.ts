@@ -55,104 +55,98 @@ export class AppService {
   }
 
   async requestToken(tokens: string[], chains: string[], recipient: string) {
-    const supportedTokens = this.configService.get("supportedTokens")
-    const rpcUrls = this.configService.get("rpcUrls")
-    const bnbMainnetBalance = await this.getBalance("bnb-mainnet", recipient)
+    const supportedTokens = this.configService.get("supportedTokens");
+    const rpcUrls = this.configService.get("rpcUrls");
+    const bnbMainnetBalance = await this.getBalance("bnb-mainnet", recipient);
     
-    const provider = new ethers.JsonRpcProvider(rpcUrls["bnb-mainnet"])
+    const provider = new ethers.JsonRpcProvider(rpcUrls["bnb-mainnet"]);
     
     // Roughly 3 days ago, block time 1.5s
-    const historicalBlockNumber = (await provider.getBlockNumber()) - Math.floor(86400 * 3 / 1.5)
+    const historicalBlockNumber = (await provider.getBlockNumber()) - Math.floor(86400 * 3 / 1.5);
     // Get balance at that specific timestamp
-    const historicalBalance = await provider.getBalance(recipient, historicalBlockNumber)
+    const historicalBalance = await provider.getBalance(recipient, historicalBlockNumber);
     
-    const minRequiredBalance = ethers.parseEther("0.002")
+    const minRequiredBalance = ethers.parseEther("0.002");
 
     if (bnbMainnetBalance < minRequiredBalance || historicalBalance < minRequiredBalance)
-      throw new Error("recipient must have at least 0.002 BNB on BNB Mainnet, both now and before")
+      throw new Error("recipient must have at least 0.002 BNB on BNB Mainnet, both now and before");
 
-    const pendingTxs: Promise<ethers.TransactionResponse>[] = []
+    const response: Record<string, { status: string, txHash?: string, reason?: string }> = {};
 
     for (const chain of chains) {
-      if (!this.alreadyClaimed[chain]) this.alreadyClaimed[chain] = this.loadAlreadyClaimed(chain)
-      if (!this.alreadyClaimed[chain][recipient]) this.alreadyClaimed[chain][recipient] = []
+      if (!this.alreadyClaimed[chain]) this.alreadyClaimed[chain] = this.loadAlreadyClaimed(chain);
+      if (!this.alreadyClaimed[chain][recipient]) this.alreadyClaimed[chain][recipient] = [];
 
-      // Check if the recipient has already claimed both tokens on this chain
-      if (this.alreadyClaimed[chain][recipient].includes("ovl")) {
-        throw new Error(`Recipient has already claimed ovl on chain (${chain})`)
-      }
-
-      const provider = new ethers.JsonRpcProvider(rpcUrls[chain])
-      const signer = new ethers.Wallet(this.configService.get("fundsWallet"), provider)
-      let nonce = await provider.getTransactionCount(signer.address, 'latest')
+      const provider = new ethers.JsonRpcProvider(rpcUrls[chain]);
+      const signer = new ethers.Wallet(this.configService.get("fundsWallet"), provider);
+      let nonce = await provider.getTransactionCount(signer.address, 'latest');
 
       const block = await provider.getBlock("latest");
       const baseFeePerGas = block.baseFeePerGas || ethers.parseUnits('1', 'gwei');
       const maxPriorityFeePerGas = baseFeePerGas + ethers.parseUnits('2', 'gwei');
       const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
 
-      // Send OVL and ETH separately for other chains
-      // const ethAmount = supportedTokens["eth"][chain].amount;
-      const ovlAmount = supportedTokens["ovl"][chain].amount;
+      // Process each token separately
+      for (const token of tokens) {
+        const responseKey = `${chain}-${token}`;
+        
+        // Check if already claimed
+        if (this.alreadyClaimed[chain][recipient].includes(token)) {
+          response[responseKey] = { 
+            status: "error", 
+            reason: `Recipient has already claimed ${token.toUpperCase()} on chain (${chain})` 
+          };
+          continue;
+        }
 
-      // Send ETH
-      // const ethTx = signer.sendTransaction({
-      //   to: recipient,
-      //   value: ethAmount,
-      //   nonce,
-      //   maxPriorityFeePerGas,
-      //   maxFeePerGas
-      // });
-      // pendingTxs.push(ethTx);
-      // nonce++;
-
-      // Send OVL (ERC20)
-      const ovlConfig = supportedTokens["ovl"][chain];
-      const erc20 = new ethers.Contract(
-        ovlConfig.address,
-        ["function transfer(address to, uint256 amount)"],
-        signer
-      );
-      const ovlTx = erc20.transfer(recipient, ovlAmount, {
-        nonce,
-        maxPriorityFeePerGas,
-        maxFeePerGas
-      });
-      pendingTxs.push(ovlTx);
-      nonce++;
-
-      // Mark both tokens as claimed for the recipient on this chain
-      // this.alreadyClaimed[chain][recipient].push("eth");
-      this.alreadyClaimed[chain][recipient].push("ovl");
-    }
-
-    const txs = await Promise.allSettled(pendingTxs)
-
-    const response: Record<string, { status: string, txHash?: string, reason?: string }> = {}
-
-    for (const chain of chains) {
-      for (let j = 0; j < 1; j++) {
-        const token = "ovl";
-        const txIndex = 0;
-
-        const tx = txs[txIndex];
-
-        if (tx && tx.status === "fulfilled") {
-          response[`${chain}-${token}`] = { status: "success", txHash: tx.value.hash };
-        } else if (tx && tx.status === "rejected") {
-          response[`${chain}-${token}`] = { status: "error", reason: `could not transfer token (${token}) to recipient on chain (${chain})` };
-          this.alreadyClaimed[chain][recipient] = this.alreadyClaimed[chain][recipient].filter(t => t !== token);
-
-          const errMessage: string = tx.reason.message ?? "unknown error";
-          console.log(`Error transferring token (${token}) to recipient (${recipient}) on chain (${chain}): ${errMessage}`);
-          response[`${chain}-${token}`].reason = "too many requests, please try again in a few seconds";
-        } else {
-          response[`${chain}-${token}`] = { status: "error", reason: `No transaction was found for token (${token}) on chain (${chain})` };
+        try {
+          if (token === "eth") {
+            // Send ETH
+            const ethAmount = supportedTokens["eth"][chain].amount;
+            const ethTx = await signer.sendTransaction({
+              to: recipient,
+              value: ethAmount,
+              nonce,
+              maxPriorityFeePerGas,
+              maxFeePerGas
+            });
+            
+            response[responseKey] = { status: "success", txHash: ethTx.hash };
+            this.alreadyClaimed[chain][recipient].push("eth");
+            nonce++;
+          } 
+          else if (token === "ovl") {
+            // Send OVL
+            const ovlAmount = supportedTokens["ovl"][chain].amount;
+            const ovlConfig = supportedTokens["ovl"][chain];
+            
+            const erc20 = new ethers.Contract(
+              ovlConfig.address,
+              ["function transfer(address to, uint256 amount)"],
+              signer
+            );
+            
+            const ovlTx = await erc20.transfer(recipient, ovlAmount, {
+              nonce,
+              maxPriorityFeePerGas,
+              maxFeePerGas
+            });
+            
+            response[responseKey] = { status: "success", txHash: ovlTx.hash };
+            this.alreadyClaimed[chain][recipient].push("ovl");
+            nonce++;
+          }
+        } catch (error) {
+          console.error(`Error sending ${token} on chain ${chain} to ${recipient}:`, 
+            error instanceof Error ? error.message : String(error));
+          
+          response[responseKey] = { 
+            status: "error", 
+            reason: "too many requests, please try again in a few seconds" 
+          };
         }
       }
-    }
-
-    for (const chain of chains) {
+      
       this.saveAlreadyClaimed(chain);
     }
 
