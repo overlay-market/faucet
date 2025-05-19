@@ -24,7 +24,7 @@ export default () => ({
                 amount: ethers.parseEther("0.1"),
             },
             "bnb-testnet": {
-                amount: ethers.parseEther("0.003"),
+                amount: ethers.parseEther("0.03"),
             }
         },
         ovl: {
